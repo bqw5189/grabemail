@@ -1,5 +1,6 @@
 package com.grab.total;
 
+import com.grab.JdbcUtils;
 import com.grab.Utils;
 import com.grab.entity.MailUser;
 import org.springside.modules.utils.Encodes;
@@ -56,7 +57,7 @@ public class ImapTask extends Thread {
             Message messages[] = folder.getMessages();
             total = messages.length;
 
-            for (int i = pargress; i < total; i++) {
+            for (int i = pargress; i < messages.length; i++) {
                 pargress = i;
 
                 Message message = messages[i];
@@ -64,10 +65,12 @@ public class ImapTask extends Thread {
                 MimeMessage imapMessage = (MimeMessage) message;
 
                 ReciveMail reciveMail = new ReciveMail(imapMessage);
+                reciveMail.getMailContent(imapMessage);
 
-                if (reciveMail.isContainAttach((Part) message)) {
+                reciveMail.saveMessage(this.getName(), Encodes.encodeHex(reciveMail.getSubject().getBytes()), reciveMail.getBodyText());
+//
+                if (!JdbcUtils.isExist(reciveMail.getSubject()))
                     reciveMail.saveAttachMent(this.getName(), Encodes.encodeHex(reciveMail.getSubject().getBytes()), message);
-                }
 
                 Utils.printProgress(i, messages.length);
             }

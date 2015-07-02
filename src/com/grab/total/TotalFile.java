@@ -26,6 +26,7 @@ public class TotalFile {
 
     public static void main(String[] args) throws MessagingException, UnsupportedEncodingException {
         listFile(new File("/Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach"));
+        System.out.println(fileNames.size());
     }
 
     public static void listFile(File file){
@@ -56,7 +57,7 @@ public class TotalFile {
             titleSet.add(hrMailEntity.getTitle());
 
             JdbcUtils.insertIntoHrEmail(hrMailEntity);
-            System.out.println(hrMailEntity);
+//            System.out.println(hrMailEntity);
         }
     }
 

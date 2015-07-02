@@ -4,9 +4,8 @@ package com.grab.total;
  * Created by baiqunwei on 15/6/3.
  */
 
+import com.grab.Utils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.monitor.FileAlterationMonitor;
-import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +13,11 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 有一封邮件就需要建立一个ReciveMail对象
@@ -246,29 +246,76 @@ public class ReciveMail {
             attachflag = isContainAttach((Part) part.getContent());
         }
         return attachflag;
+
+
+    }
+
+    public void saveMessage(String userName, String emailName, String message) throws Exception {
+        long start = System.currentTimeMillis();
+
+        if (this.getFrom().indexOf("51job") > -1) {
+            this.setAttachPath("/Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/51job/" + userName + "/" + this.getSentDate().split(" ")[0] + "/" + emailName);
+        } else if (this.getFrom().indexOf("Zhaopin") > -1) {
+            this.setAttachPath("/Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/zhaopin/" + userName + "/" + this.getSentDate().split(" ")[0] + "/" + emailName);
+        } else {
+            this.setAttachPath("/Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/other/" + userName + "/" + this.getSentDate().split(" ")[0] + "/" + emailName);
+        }
+
+        saveFile("mail.html", message);
+    }
+
+    private void saveFile(String fileName, String message) throws Exception {
+        File storefile = isExist(fileName);
+
+        if (null != storefile) {
+            FileUtils.writeStringToFile(storefile, message, "GBK");
+
+            System.out.println("storefile's path: " + storefile.toString() + "(" + storefile.getTotalSpace() + ")");
+        }
+
+
+    }
+
+    private File isExist(String fileName) {
+        File dir = new File(this.getAttachPath());
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+
+        if (fileName.indexOf(File.separator) > -1) {
+            fileName = fileName.replaceAll(File.separator, "-");
+        }
+
+        File storefile = new File(this.getAttachPath() + File.separator + fileName);
+        if (storefile.exists()) {
+//            storefile.delete();
+            return null;
+        }
+        return storefile;
     }
 
     public void saveAttachMent(String userName, String emailName, Message message) throws Exception {
+        long start = System.currentTimeMillis();
 
-        if (this.getFrom().indexOf("51job") > -1){
+        if (this.getFrom().indexOf("51job") > -1) {
             this.setAttachPath("/Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/51job/" + userName + "/" + this.getSentDate().split(" ")[0] + "/" + emailName);
-        }else if(this.getFrom().indexOf("Zhaopin") > -1){
+        } else if (this.getFrom().indexOf("Zhaopin") > -1) {
             this.setAttachPath("/Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/zhaopin/" + userName + "/" + this.getSentDate().split(" ")[0] + "/" + emailName);
-        }else{
+        } else {
             this.setAttachPath("/Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/other/" + userName + "/" + this.getSentDate().split(" ")[0] + "/" + emailName);
         }
 
         Object o = message.getContent();
-        if(o instanceof Multipart) {
-            Multipart multipart = (Multipart) o ;
+        if (o instanceof Multipart) {
+            Multipart multipart = (Multipart) o;
             saveAttachMent(multipart);
-        } else if (o instanceof Part){
+        } else if (o instanceof Part) {
             Part part = (Part) o;
             saveAttachMent(part);
-        } else {
-//            System.out.println("类型" + message.getContentType());
-//            System.out.println("内容" + message.getContent());
         }
+
+        Utils.printRunTimes("saveAttachMent", start);
 
     }
 
@@ -279,10 +326,10 @@ public class ReciveMail {
                 if (part.getContent() instanceof Multipart) {
                     Multipart multipart = (Multipart) part.getContent();// 转成小包裹
                     saveAttachMent(multipart);
-                }else{
+                } else {
                     saveAttachMent(part);
                 }
-            }catch (IOException e){
+            } catch (IOException e) {
 
             }
         }
@@ -297,13 +344,9 @@ public class ReciveMail {
         fileName = part.getFileName();
 
         if ((fileName != null)) {
-//            System.out.println("发现附件: " +  MimeUtility.decodeText(part.getFileName()));
-//            System.out.println("内容类型: " + MimeUtility.decodeText(part.getContentType()));
-//            System.out.println("附件内容:" + part.getContent());
-
             fileName = fileName.replaceAll("\\?==\\?", "?=\t\r\n=?");
 
-            if (fileName.indexOf("utf-8")>-1 || fileName.indexOf("GBK")>-1 || fileName.indexOf("gb2312")>-1){
+            if (fileName.indexOf("utf-8") > -1 || fileName.indexOf("GBK") > -1 || fileName.indexOf("gb2312") > -1) {
                 fileName = MimeUtility.decodeText(fileName);
             }
 
@@ -339,94 +382,28 @@ public class ReciveMail {
 
 
     private void saveFile(String fileName, Part part) throws Exception {
-//        System.out.println(fileName);
+        File storefile = isExist(fileName);
 
-        File dir = new File(this.getAttachPath());
-        if(!dir.exists()){
-            dir.mkdirs();
-        }
+        if (null != storefile) {
 
 
-        if(fileName.indexOf(File.separator) > -1){
-            fileName = fileName.replaceAll(File.separator, "-");
-        }
+            try {
+                if (part.isMimeType("text/*")) {
+                    FileUtils.writeStringToFile(storefile, part.getContent() + "", "GBK");
+                } else if (part.isMimeType("image/*")) {
+                    FileUtils.copyInputStreamToFile(part.getInputStream(), storefile);
+                } else {
+                    part.writeTo(new FileOutputStream(storefile));
+                }
 
-        File storefile = new File(this.getAttachPath() + File.separator + fileName);
-        if (storefile.exists()){
-            return;
-        }
-
-        try {
-
-//            // 轮询间隔 5 秒
-//            long interval = TimeUnit.SECONDS.toMillis(5);
-//            // 创建一个文件观察器用于处理文件的格式
-//            FileAlterationObserver observer = new FileAlterationObserver(storefile);
-//            //设置文件变化监听器
-//            observer.addListener(new FileListener(part.getSize()));
-//            FileAlterationMonitor monitor = new FileAlterationMonitor(interval, observer);
-//            monitor.start();
-            if (part.isMimeType("text/*")){
-                FileUtils.writeStringToFile(storefile, part.getContent()+"","GBK");
-            }else if (part.isMimeType("image/*")){
-                FileUtils.copyInputStreamToFile(part.getInputStream(), storefile);
-            }else{
-                part.writeTo(new FileOutputStream(storefile));
+            } catch (Exception e) {
+                storefile.delete();
             }
 
-        }catch (Exception e){
-            storefile.delete();
+
+            System.out.println("storefile's path: " + storefile.toString() + "(" + storefile.getTotalSpace() + ")");
         }
-
-
-        System.out.println("storefile's path: " + storefile.toString() + "("  + storefile.getTotalSpace() + ")");
     }
 
-    /**
-     * 【真正的保存附件到指定目录里】
-     */
-    private void saveFile(String fileName, InputStream in) throws Exception {
-        DataInputStream din = new DataInputStream(in);
-        FileOutputStream out = null;
-        System.out.println(fileName);
-        File dir = new File(this.getAttachPath());
-        if(!dir.exists()){
-            dir.mkdirs();
-        }
 
-
-        if(fileName.indexOf(File.separator) > -1){
-            fileName = fileName.replaceAll(File.separator, "-");
-        }
-
-        File storefile = new File(this.getAttachPath() + File.separator + fileName);
-        if (storefile.exists()){
-            return;
-        }
-
-//        Boolean b = storefile.exists();
-//        if(!b) {
-//            out = new FileOutputStream(storefile);
-//            int data;
-//            // 循环读写
-//            while((data=in.read()) != -1) {
-//                out.write(data);
-//                System.out.println("附件：【" + fileName + "】下载...，保存路径为：" + storefile.getPath());
-//
-//            }
-//            out.flush();
-//            din.close();
-//            out.close();
-//        }
-
-//        try {
-            FileUtils.copyInputStreamToFile(MimeUtility.decode(in,"quoted-printable"), storefile);
-//            System.out.println("storefile's path: " + storefile.toString() + "("  + ")");
-//        } catch (Exception exception) {
-//            exception.printStackTrace();
-//            System.out.println("文件保存失败!=>" + storefile);
-//            storefile.delete();
-//        } finally {
-//        }
-    }
 }

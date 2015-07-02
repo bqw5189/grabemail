@@ -43,6 +43,11 @@ public class Utils {
     //Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/51job/hr@shangrucc.com/14-04-09/2835316a6f622e636f6d29e794b3e8afb7e8b4b5e585ace58fb8e8a18ce694bfe4b893e591982fe58aa9e79086efbc88e58c97e4baac2de69c9de998b3e58cbaefbc89efbc8de4bbbbe6b88520/resume.html
     //Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/other/hr@shangrucc.com/15-06-15/e7868ae5ada6e6b19fe79a84e4b8aae4babae7ae80e58e86/熊学江-iOS初级开发人员-猎聘网简历.doc
     public static void parseFileName(HrMailEntity hrMailEntity, String fileName) {
+        System.out.println(fileName);
+        if (fileName.indexOf(".DS_Store") > -1){
+            return;
+        }
+
         int startIndex = 8;
         String[] fileNames = fileName.split("/");
         if (fileNames.length <= 10){
@@ -54,7 +59,11 @@ public class Utils {
         hrMailEntity.setName(fileNames[startIndex + 1]);
         hrMailEntity.setSentDate(fileNames[startIndex + 2]);
 
-        if ("other".equals(fileNames[startIndex + 0])){
+        if (fileNames[fileNames.length -1].equals("mail.html")){
+            hrMailEntity.setSource(fileNames[startIndex + 0]);
+            hrMailEntity.setTitle(new String(Encodes.decodeHex(fileNames[fileNames.length - 2])));
+            hrMailEntity.setType(getTypeByTitle(hrMailEntity.getTitle()));
+        }else if ("other".equals(fileNames[startIndex + 0])){
             hrMailEntity.setSource(getSourceByTitle(fileNames[fileNames.length -1]));
             hrMailEntity.setTitle(fileNames[fileNames.length -1]);
             hrMailEntity.setType(getTypeByTitle(hrMailEntity.getTitle()));
@@ -115,8 +124,14 @@ public class Utils {
             return "行政";
         }else if(title.toUpperCase().indexOf("财务")>-1){
             return "财务";
+        }else if(title.toUpperCase().indexOf("C++")>-1){
+            return "C++";
         }else{
             return "其他";
         }
+    }
+
+    public static void printRunTimes(String methodName, long start) {
+        System.out.println(methodName + " used : " + (System.currentTimeMillis() - start)/1000);
     }
 }

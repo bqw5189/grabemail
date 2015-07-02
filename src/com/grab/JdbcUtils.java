@@ -21,7 +21,13 @@ public class JdbcUtils {
     final static JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
     public static void insertIntoHrEmail(HrMailEntity hrMailEntity){
-        jdbcTemplate.update("insert into t_email(name, title, source, type, sent_date,file_name) values (?,?,?,?,?,?)", hrMailEntity.getName(),
-                hrMailEntity.getTitle(),hrMailEntity.getSource(),hrMailEntity.getType(),hrMailEntity.getSentDate(), hrMailEntity.getFileName());
+        if (jdbcTemplate.queryForList("select * from t_email where title=?", hrMailEntity.getTitle()).size()==0) {
+            jdbcTemplate.update("insert into t_email(name, title, source, type, sent_date,file_name) values (?,?,?,?,?,?)", hrMailEntity.getName(),
+                    hrMailEntity.getTitle(), hrMailEntity.getSource(), hrMailEntity.getType(), hrMailEntity.getSentDate(), hrMailEntity.getFileName());
+        }
+    }
+
+    public static boolean isExist(String title){
+        return jdbcTemplate.queryForList("select * from t_email where title=?", title).size()!=0;
     }
 }
