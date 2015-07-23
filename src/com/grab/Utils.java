@@ -5,14 +5,14 @@ import com.grab.entity.HrMailEntity;
 import net.sf.jxls.transformer.Configuration;
 import net.sf.jxls.transformer.XLSTransformer;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.springside.modules.utils.Encodes;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created by baiqunwei on 15/6/8.
@@ -96,6 +96,24 @@ public class Utils {
     private static String getTypeByTitle(String title) {
         if (title.toUpperCase().indexOf("JAVA")>-1){
             return "JAVA";
+        }else if(title.toUpperCase().indexOf("DBA")>-1){
+            return "DBA";
+        }else if(title.toUpperCase().indexOf("数据库")>-1){
+            return "DBA";
+        }else if(title.toUpperCase().indexOf("UI")>-1){
+            return "UI";
+        }else if(title.toUpperCase().indexOf("PHP")>-1){
+            return "PHP";
+        }else if(title.toUpperCase().indexOf("ECLIPSE")>-1){
+            return "ECLIPSE";
+        }else if(title.toUpperCase().indexOf("网络工程师")>-1){
+            return "网络工程师";
+        }else if(title.toUpperCase().indexOf("美工")>-1){
+            return "美工";
+        }else if(title.toUpperCase().indexOf("运营推广总监")>-1){
+            return "运营推广总监";
+        }else if(title.toUpperCase().indexOf("Sharepoint")>-1){
+            return "Sharepoint";
         }else if(title.toUpperCase().indexOf("IOS")>-1){
             return "IOS";
         }else if(title.toUpperCase().indexOf("ANDROID")>-1){
@@ -116,7 +134,9 @@ public class Utils {
             return "司机";
         }else if(title.toUpperCase().indexOf("销售")>-1){
             return "销售";
-         }else if(title.toUpperCase().indexOf("商务助理")>-1){
+        }else if(title.toUpperCase().indexOf("营销")>-1){
+            return "营销";
+        }else if(title.toUpperCase().indexOf("商务助理")>-1){
             return "商务助理";
          }else if(title.toUpperCase().indexOf("客户经理")>-1){
             return "客户经理";
@@ -133,5 +153,18 @@ public class Utils {
 
     public static void printRunTimes(String methodName, long start) {
         System.out.println(methodName + " used : " + (System.currentTimeMillis() - start)/1000);
+    }
+
+    ///Volumes/MACINTOSH-WORK/work/code/utils/grabemail/attach/51job/hr@shangrucc.com/14-06-26
+    public static Date getSentDate(String fileName) throws ParseException {
+        String[] fileNames = fileName.split("/");
+        if (fileNames.length == 11){
+            SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd");
+            if (fileNames[10].indexOf("-") == -1){
+                return null;
+            }
+            return sdf.parse(fileNames[10]);
+        }
+        return null;
     }
 }

@@ -31,7 +31,7 @@ public class Job51ProcessCurriculumVitae implements IProcessCurriculumVitae {
             return curriculumVitae;
         }
 
-        Document doc = Jsoup.parse(htmlFile, "utf8");
+        Document doc = Jsoup.parse(htmlFile, "gbk");
 
         logger.debug("curriculumVitaeFile:{}, html:{}", curriculumVitaeFile, doc.text());
 

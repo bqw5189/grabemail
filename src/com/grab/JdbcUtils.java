@@ -1,10 +1,14 @@
 package com.grab;
 
+import com.alibaba.fastjson.JSON;
+import com.grab.chinahr.entity.SearchKeyEntity;
 import com.grab.entity.HrMailEntity;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by baiqunwei on 15/6/29.
@@ -29,5 +33,21 @@ public class JdbcUtils {
 
     public static boolean isExist(String title){
         return jdbcTemplate.queryForList("select * from t_email where title=?", title).size()!=0;
+    }
+
+    public static List<Map<String, Object>> query(String query) {
+        return jdbcTemplate.queryForList(query);
+    }
+
+    public static void insertIntoSearchKey(Map<String, String> postData) {
+        jdbcTemplate.update("insert into t_search_key(key, search_condition,page) values (?,?,?)",postData.get("keyword"), JSON.toJSONString(postData),1);
+    }
+
+    public static void update(String query) {
+        jdbcTemplate.update(query);
+    }
+
+    public static void updateSearchKeyEntity(SearchKeyEntity searchKeyEntity) {
+        jdbcTemplate.update("update t_search_key set total=?, max=?,last_refresh=?,page=? where id=?", searchKeyEntity.getTotal(), searchKeyEntity.getMax(), searchKeyEntity.getLastRefresh(),searchKeyEntity.getPage(), searchKeyEntity.getId());
     }
 }

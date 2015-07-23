@@ -7,7 +7,9 @@ import org.springside.modules.utils.Encodes;
 
 import javax.mail.*;
 import javax.mail.internet.MimeMessage;
-import javax.mail.search.SearchTerm;
+import javax.mail.search.*;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -54,13 +56,42 @@ public class ImapTask extends Thread {
             folder = store.getFolder("INBOX");
             folder.open(Folder.READ_ONLY);
 
+
+//            Calendar calendar = Calendar.getInstance();
+//            calendar.set(Calendar.DAY_OF_WEEK, calendar.get(Calendar.DAY_OF_WEEK) - 1);
+//            Date mondayDate = calendar.getTime();
+//            SearchTerm comparisonTermGe = new SentDateTerm(ComparisonTerm.GE, mondayDate);
+//            SearchTerm comparisonTermLe = new SentDateTerm(ComparisonTerm.LE, new Date());
+//            SearchTerm comparisonAndTerm = new AndTerm(comparisonTermGe, comparisonTermLe);
+//
+//            // 搜索大于或等100KB的所有邮件
+//            int mailSize = 1 ;
+//            SearchTerm intComparisonTerm = new SizeTerm(IntegerComparisonTerm.GE, mailSize);
+//
+//            comparisonAndTerm = new AndTerm(comparisonAndTerm, comparisonAndTerm);
+//
+//
+//            SearchTerm notTerm = new NotTerm(new FromStringTerm("智联招聘"));
+////            Message[] messages = folder.search(notTerm);
+
             Message messages[] = folder.getMessages();
-            total = messages.length;
+
+            messages = folder.getMessages((int)(messages.length*0.95), messages.length);
 
             for (int i = pargress; i < messages.length; i++) {
                 pargress = i;
 
+                Utils.printProgress(i, messages.length);
+
                 Message message = messages[i];
+
+                if(message.getSentDate().getTime() <= System.currentTimeMillis()- 4 * 24 * 60 * 60 * 1000){
+                    continue;
+                }
+
+                if (JdbcUtils.isExist(message.getSubject())){
+                    continue;
+                }
 
                 MimeMessage imapMessage = (MimeMessage) message;
 
@@ -72,7 +103,7 @@ public class ImapTask extends Thread {
                 if (!JdbcUtils.isExist(reciveMail.getSubject()))
                     reciveMail.saveAttachMent(this.getName(), Encodes.encodeHex(reciveMail.getSubject().getBytes()), message);
 
-                Utils.printProgress(i, messages.length);
+
             }
 
             System.out.println("mail:" + mailUser.getName() + " message:" + messages.length);

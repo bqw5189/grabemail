@@ -21,7 +21,7 @@ public class Job51AddressInfo implements IAddressInfo {
             baseInfoTd = doc.select("html body table tbody tr td div#c_content div.v2 div.v2_middle table tbody tr td table tbody tr td[height*=20]");
         }
 
-        logger.debug("baseInfoTd:{}", baseInfoTd.text());
+        logger.debug("baseInfoTd:{}, :{}", baseInfoTd.size(), baseInfoTd.text());
 
         if (baseInfoTd.size() >= 9) {
             curriculumVitae.setPlaceOfResidence(baseInfoTd.get(1).text());
@@ -29,10 +29,12 @@ public class Job51AddressInfo implements IAddressInfo {
             curriculumVitae.setAddress(baseInfoTd.get(5).text());
             curriculumVitae.setPhone(baseInfoTd.get(7).text());
             curriculumVitae.setEmail(baseInfoTd.get(9).text());
-        } else {
-            curriculumVitae.setPlaceOfResidence(baseInfoTd.get(1).text());
-            curriculumVitae.setPhone(baseInfoTd.get(3).text());
-            curriculumVitae.setEmail(baseInfoTd.get(5).text());
+        } else if (baseInfoTd.size() == 8){
+            curriculumVitae.setPlaceOfResidence(baseInfoTd.get(3).text());
+            curriculumVitae.setPhone(baseInfoTd.get(5).text());
+            curriculumVitae.setEmail(baseInfoTd.get(7).text());
+        }else {
+            logger.debug("address parse error!");
         }
 
     }
